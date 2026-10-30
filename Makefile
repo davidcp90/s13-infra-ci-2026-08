@@ -14,7 +14,7 @@ BACKEND  := backend
 FRONTEND := frontend
 
 .DEFAULT_GOAL := help
-.PHONY: test-unit test-e2e ui test-ui test-web hooks help setup start install env db-up db-down migrate seed db-readonly copia-produccion test image image-run image-stop clean
+.PHONY: test-unit test-e2e ui test-ui test-web hooks help setup start install env db-up db-down migrate seed db-readonly copia-produccion test image image-run image-stop ci-lint clean
 
 # La ayuda se genera a partir de los comentarios `## ...` de cada target, para
 # que no haya un segundo listado que mantener a mano y que pueda divergir.
@@ -228,6 +228,17 @@ image-run: ## Arranca la imagen en segundo plano (puerto IMAGE_PORT, por defecto
 image-stop: ## Para y borra el contenedor de la imagen
 	@docker stop $(IMAGE_CONTAINER)
 	@docker rm $(IMAGE_CONTAINER)
+
+# ---------------------------------------------------------------------------
+# pipeline (.github/workflows/)
+# ---------------------------------------------------------------------------
+
+# El trabajo `lint-workflows` de ci.yml llama a este mismo atajo, y el hook
+# .claude/hooks/workflow-valido.sh también: en local y en el pipeline se valida
+# con la misma versión y el mismo comando. Sin argumentos, actionlint revisa
+# todo .github/workflows/ (con shellcheck sobre cada `run:`, que trae la imagen).
+ci-lint: ## Valida los workflows de .github/workflows/ con actionlint (Docker)
+	@docker run --rm -v "$(CURDIR)":/repo -w /repo rhysd/actionlint:1.7.12 -color
 
 # ---------------------------------------------------------------------------
 # clean
